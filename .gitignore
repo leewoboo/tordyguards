@@ -1,0 +1,6 @@
+*~
+*.pyc
+.*swp
+deb_dist
+dist
+~     
