@@ -3,4 +3,6 @@
 .*swp
 deb_dist
 dist
+build
+installed-files.txt
 ~     
