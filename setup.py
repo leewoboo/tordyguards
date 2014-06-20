@@ -64,13 +64,13 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Utilities',
     ],
-
-    # package_dir={'tordyguards': 'src/tordyguards'},
+    # package_dir={'tordyguards': 'src'},
     # packages=['tordyguards'],
+    # scripts=['scripts/tordyguards.py'],
     data_files=[
+        ('/etc/wicd/scripts/preconnect', ['bin/tordyguards.py']),
         ('/etc/wicd/scripts/preconnect', ['src/tor_change_state.py']),
-        ('/etc/wicd/scripts/preconnect', ['src/wicd_tor_change_state.py']),
-        ('/etc/wicd/scripts/preconnect', ['src/settings.py']),
+        ('/etc/tordyguards', ['tordyguards.conf']),
         # ('/usr/share/man/man1', ['man/tordyguards.1']),
         # ('/usr/share/doc/tordyguards', ['doc/source/*.rst'])
     ],

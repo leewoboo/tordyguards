@@ -21,23 +21,38 @@
 #
 
 
+import configparser
+import logging
 import os
 import shutil
+
 from subprocess import Popen
-import logging
-# TOR_USER is not imported as Popen with preserve should preserve the tor owner
-# of the state file
-try:
-    from settings import TOR_STATE_PATH, TOR_STATE_FILE, TOR_STOP_CMD, \
-        TOR_START_CMD, LAST_BSSID_FN
-except ImportError:
-    print "ERROR: conf not found"
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 #tor_wicd_conf = os.path.join("/etc/wicd/", "tor_wicd.conf")
+
+
+def parseConfig(filename=None):
+    try:
+        fh = open(filename)
+    except (IOError, OSError):
+        logger.warn("Couldn't open config file: %s" % filename)
+        raise SystemExit()
+
+    try:
+        config = configparser.ConfigParser()
+        config.read_file(fh)
+        if not 'Tor' in config.sections():
+            raise ValueError("Couldn't parse config file: %s" % filename)
+    except Exception, error:
+        raise SystemExit(error)
+    else:
+        fh.close()
+
+    return config
 
 
 def last_bssid_full_path(state_path, last_bssid_fn):
@@ -103,10 +118,7 @@ def update_last_bssid_file(last_bssid_fp, bssid):
     logger.info("updated %s with bssid %s" % (last_bssid_fp, bssid))
 
 
-def change_state_file(bssid,
-                      state_path=TOR_STATE_PATH,
-                      state_fn=TOR_STATE_FILE,
-                      last_bssid_fn=LAST_BSSID_FN):
+def change_state_file(bssid, config_file=None):
     """Change tor state file depending on the network bssid
     
     Tor ignore state file when it is a symlink,
@@ -144,13 +156,20 @@ def change_state_file(bssid,
     :type last_bssid_fn: string
     """
 
+    config = parseConfig(config_file)
+    state_path = config.get('Tor', 'DataDirectory')
+    state_fn = config.get('Tor', 'StateFile')
+    last_bssid_fn = config.get('Network', 'LastBSSIDFilename')
+    start_tor = config.get('Commands', 'StartTor')
+    stop_tor = config.get('Commands', 'StopTor')
+
     last_bssid_fp = last_bssid_full_path(state_path, last_bssid_fn)
     state_fp = state_full_path(state_path, state_fn)
     state_bssid_fp = state_bssid_full_path(state_path, state_fn, bssid)
     state_old_fp = state_old_full_path(state_path, state_fn)
 
     # before using state file, stop tor
-    os.system(TOR_STOP_CMD)
+    os.system(stop_tor)
 
     previous_bssid = last_bssid_file_exists(last_bssid_fp)
     if previous_bssid:
@@ -186,4 +205,4 @@ def change_state_file(bssid,
         update_last_bssid_file(last_bssid_fp, bssid)
 
     # start tor again
-    os.system(TOR_START_CMD)
+    os.system(start_tor)
