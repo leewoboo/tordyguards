@@ -180,15 +180,15 @@ def change_state_file(bssid, config_file=None):
     state_bssid_fp = state_bssid_full_path(state_path, state_fn, bssid)
     state_old_fp = state_old_full_path(state_path, state_fn)
 
-    # before using state file, stop tor
-    os.system(stop_tor)
-
     previous_bssid = last_bssid_file_exists(last_bssid_fp)
     if previous_bssid:
         state_bssid_previous_fp = state_bssid_full_path(
             state_path, state_fn, previous_bssid)
         if file_exists(state_fp):
             if previous_bssid != bssid:
+                # before using state file, stop tor
+                logger.info("stopping tor")
+                os.system(stop_tor)
                 mv_file(state_fp, state_bssid_previous_fp)
                 if file_exists(state_bssid_fp):
                     cp_file(state_bssid_fp, state_fp)
@@ -199,11 +199,14 @@ def change_state_file(bssid, config_file=None):
                 # else: previous_bssid == bssid
                 # no need to cp state to state.bssid, nor to update last_bssid
                 # but update state.bssid with last state
+                # don't stop tor to don't loose the circuits
                 cp_file(state_fp, state_bssid_fp)
         else:
             # else: no state file
             if previous_bssid != bssid:
                 if file_exists(state_bssid_previous_fp):
+                    logger.info("stopping tor") 
+                    os.system(stop_tor) 
                     mv_file(state_bssid_previous_fp, state_fp)
                 # else: no state.last_bssid file
                 # current state will be created by tor
@@ -216,5 +219,6 @@ def change_state_file(bssid, config_file=None):
             mv_file(state_fp, state_old_fp)
         update_last_bssid_file(last_bssid_fp, bssid)
 
-    # start tor again
+    # start tor again (if it wasn't stop it, it won't do anything)
+    logger.info("starting tor")
     os.system(start_tor)
