@@ -26,14 +26,19 @@ try:
 except:
     import ConfigParser as configparser
 import logging
+from logging import handlers
 import os
 import shutil
 
 from subprocess import Popen
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+h = handlers.SysLogHandler(address='/dev/log')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(module)s: %(levelname)s %(message)s')
+h.setFormatter(formatter)
+logger.addHandler(h)
 
 #tor_wicd_conf = os.path.join("/etc/wicd/", "tor_wicd.conf")
 
