@@ -101,7 +101,7 @@ def main():
         import tor_change_state
     except ImportError, error:
         print(error)
-        exit('ERROR: tor_change_state not found!')
+        exit('ERROR: importing tor_change_state')
 
     parser = argparse.ArgumentParser(description=(
         "This script is called before Wicd connects to a network, in order "

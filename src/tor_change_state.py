@@ -20,8 +20,11 @@
 #   along with TorDyGuards.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-import configparser
+# ConfigParser module has been renamed to configparser in Python 3
+try:
+    import configparser
+except:
+    import ConfigParser as configparser
 import logging
 import os
 import shutil
@@ -44,7 +47,11 @@ def parseConfig(filename=None):
 
     try:
         config = configparser.ConfigParser()
-        config.read_file(fh)
+        # in Python 2 there the method is called readfp
+        try:
+            config.read_file(fh)
+        except:
+            config.readfp(fh)
         if not 'Tor' in config.sections():
             raise ValueError("Couldn't parse config file: %s" % filename)
     except Exception, error:
